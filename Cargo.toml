@@ -1,0 +1,8 @@
+[package]
+name = "dht22_pi"
+version = "0.1.0"
+authors = ["Michael Fletcher <m.fletcher@theplanet.ca>"]
+
+[dependencies]
+rppal = "0.1.2"
+libc = "0.2.21"
