@@ -7,6 +7,7 @@
 //! This library has been tesed on a DHT22 from Adafruit using a Raspberry Pi Module B+.
 //!
 
+
 extern crate rppal;
 extern crate libc;
 
@@ -136,8 +137,11 @@ fn decode(arr:[usize; DHT_PULSES*2]) -> Result<Reading, ReadingError> {
 
 /// Read temperature and humidity from a DHT22 connected to a GPIO pin on a Raspberry Pi.
 /// 
-/// On a Raspberry Pi this is implemented using bit-banging which is very error-prone.  If you 
-/// require a reading you should read a number of times until you get a successfull one.
+/// On a Raspberry Pi this is implemented using bit-banging which is very error-prone.  It will
+/// fail 30% of the time.  You should write code to handle this.  In addition you should not
+/// attempt a reading more frequently than once every 2 seconds because the DHT22 hardware does
+/// not support that.
+///
 pub fn read(pin: u8) -> Result<Reading, ReadingError> {
     let mut gpio = GPIO::new()?;
 
