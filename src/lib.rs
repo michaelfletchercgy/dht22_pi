@@ -72,7 +72,7 @@ fn set_max_priority() {
         let result = sched_setscheduler(0, SCHED_FIFO, &param);
 
         if result != 0 {
-            panic!("errno");
+            panic!("Error setting priority, you may not have cap_sys_nice capability");
         }
     }
 }
@@ -85,7 +85,7 @@ fn set_default_priority() {
         let result = sched_setscheduler(0, SCHED_OTHER, &param);
 
         if result != 0 {
-            panic!("errno");
+            panic!("Error setting priority, you may not have cap_sys_nice capability");
         }
     }
 }
