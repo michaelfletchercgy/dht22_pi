@@ -17,9 +17,8 @@ use std::ptr::write_volatile;
 use std::thread::sleep;
 use std::time::Duration;
 
-use rppal::gpio::GPIO;
+use rppal::gpio::Gpio;
 use rppal::gpio::Level;
-use rppal::gpio::Mode;
 
 use libc::SCHED_FIFO;
 use libc::SCHED_OTHER;
@@ -135,7 +134,7 @@ fn decode(arr:[usize; DHT_PULSES*2]) -> Result<Reading, ReadingError> {
     })
 }
 
-/// Read temperature and humidity from a DHT22 connected to a GPIO pin on a Raspberry Pi.
+/// Read temperature and humidity from a DHT22 connected to a Gpio pin on a Raspberry Pi.
 /// 
 /// On a Raspberry Pi this is implemented using bit-banging which is very error-prone.  It will
 /// fail 30% of the time.  You should write code to handle this.  In addition you should not
@@ -143,28 +142,36 @@ fn decode(arr:[usize; DHT_PULSES*2]) -> Result<Reading, ReadingError> {
 /// not support that.
 ///
 pub fn read(pin: u8) -> Result<Reading, ReadingError> {
-    let mut gpio = GPIO::new()?;
-
+    let mut gpio_out = match Gpio::new() {
+        Err(e) => return Err(ReadingError::Gpio(e)),
+        Ok(g) => match g.get(pin) {
+            Err(e) => return Err(ReadingError::Gpio(e)),
+            Ok(pin) => pin.into_output()
+        }
+    };
+    let gpio_in = match Gpio::new() {
+        Err(e) => return Err(ReadingError::Gpio(e)),
+        Ok(g) => match g.get(pin) {
+            Err(e) => return Err(ReadingError::Gpio(e)),
+            Ok(pin) => pin.into_input()
+        }
+    };
     let mut pulse_counts: [usize; DHT_PULSES*2] = [0; DHT_PULSES * 2];
-    gpio.set_mode(pin, Mode::Output);
                                                                       
     set_max_priority(); 
 
-    gpio.write(pin, Level::High);
+    gpio_out.write(Level::High);
     sleep(Duration::from_millis(500));
 
-    gpio.write(pin, Level::Low);
+    gpio_out.write(Level::Low);
     sleep(Duration::from_millis(20));
-
-    gpio.set_mode(pin, Mode::Input);
 
     // Sometimes the pin is briefly low.
     tiny_sleep();
-
     
     let mut count:usize = 0;
 
-    while gpio.read(pin)? == Level::High {
+    while gpio_in.read() == Level::High {
         count = count + 1;
 
         if count > MAX_COUNT {
@@ -176,7 +183,7 @@ pub fn read(pin: u8) -> Result<Reading, ReadingError> {
         let i = c * 2;
 
 
-        while gpio.read(pin)? == Level::Low {
+        while gpio_in.read() == Level::Low {
             pulse_counts[i] = pulse_counts[i] + 1;
 
             if pulse_counts[i] > MAX_COUNT {
@@ -184,7 +191,7 @@ pub fn read(pin: u8) -> Result<Reading, ReadingError> {
             }
         }
 
-        while gpio.read(pin)? == Level::High {
+        while gpio_in.read() == Level::High {
             pulse_counts[i + 1] = pulse_counts[i + 1] + 1;
 
             if pulse_counts[i + 1] > MAX_COUNT {
