@@ -1,6 +1,6 @@
 [package]
 name = "dht22_pi"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael Fletcher <m.fletcher@theplanet.ca>"]
 description = "Rust API to obtain temperature and humidity measurements from a DHT22 connected to a Raspberry Pi."
 license = "MIT"
