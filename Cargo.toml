@@ -10,5 +10,5 @@ categories = ["hardware-support"]
 keywords = ["pi", "dht22", "temperature"]
 
 [dependencies]
-rppal = "0.1.2"
+rppal = "0.11.3"
 libc = "0.2.21"
