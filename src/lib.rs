@@ -209,8 +209,8 @@ pub fn read(pin: u8) -> Result<Reading, ReadingError> {
 
 #[cfg(test)]
 mod tests {
-    use decode;
-    use ReadingError;
+    use super::decode;
+    use super::ReadingError;
 
     #[test]
     fn from_spec_positive_temp() {

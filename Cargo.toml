@@ -8,6 +8,7 @@ documentation = "https://docs.rs/dht22_pi/"
 repository = "https://github.com/michaelfletchercgy/dht22_pi"
 categories = ["hardware-support"]
 keywords = ["pi", "dht22", "temperature"]
+edition = "2018"
 
 [dependencies]
 rppal = "0.11.3"
