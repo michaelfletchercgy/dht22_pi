@@ -19,6 +19,7 @@ use std::time::Duration;
 
 use rppal::gpio::Gpio;
 use rppal::gpio::Level;
+use rppal::gpio::Mode;
 
 use libc::SCHED_FIFO;
 use libc::SCHED_OTHER;
@@ -142,36 +143,32 @@ fn decode(arr:[usize; DHT_PULSES*2]) -> Result<Reading, ReadingError> {
 /// not support that.
 ///
 pub fn read(pin: u8) -> Result<Reading, ReadingError> {
-    let mut gpio_out = match Gpio::new() {
+    let mut gpio = match Gpio::new() {
         Err(e) => return Err(ReadingError::Gpio(e)),
         Ok(g) => match g.get(pin) {
             Err(e) => return Err(ReadingError::Gpio(e)),
-            Ok(pin) => pin.into_output()
+            Ok(pin) => pin.into_io(Mode::Output)
         }
     };
-    let gpio_in = match Gpio::new() {
-        Err(e) => return Err(ReadingError::Gpio(e)),
-        Ok(g) => match g.get(pin) {
-            Err(e) => return Err(ReadingError::Gpio(e)),
-            Ok(pin) => pin.into_input()
-        }
-    };
+
     let mut pulse_counts: [usize; DHT_PULSES*2] = [0; DHT_PULSES * 2];
                                                                       
     set_max_priority(); 
 
-    gpio_out.write(Level::High);
+    gpio.write(Level::High);
     sleep(Duration::from_millis(500));
 
-    gpio_out.write(Level::Low);
+    gpio.write(Level::Low);
     sleep(Duration::from_millis(20));
+
+    gpio.set_mode(Mode::Input);
 
     // Sometimes the pin is briefly low.
     tiny_sleep();
     
     let mut count:usize = 0;
 
-    while gpio_in.read() == Level::High {
+    while gpio.read() == Level::High {
         count = count + 1;
 
         if count > MAX_COUNT {
@@ -183,7 +180,7 @@ pub fn read(pin: u8) -> Result<Reading, ReadingError> {
         let i = c * 2;
 
 
-        while gpio_in.read() == Level::Low {
+        while gpio.read() == Level::Low {
             pulse_counts[i] = pulse_counts[i] + 1;
 
             if pulse_counts[i] > MAX_COUNT {
@@ -191,7 +188,7 @@ pub fn read(pin: u8) -> Result<Reading, ReadingError> {
             }
         }
 
-        while gpio_in.read() == Level::High {
+        while gpio.read() == Level::High {
             pulse_counts[i + 1] = pulse_counts[i + 1] + 1;
 
             if pulse_counts[i + 1] > MAX_COUNT {
