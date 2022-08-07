@@ -27,7 +27,7 @@ use libc::sched_setscheduler;
 use libc::sched_param;
 
 /// A temperature and humidity reading from the DHT22.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Reading {
     pub temperature: f32,
     pub humidity: f32
